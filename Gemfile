@@ -7,6 +7,7 @@ gem "pry-byebug"
 # test dependencies
 gem "rspec"
 gem "simplecov"
+gem 'codecov', require: false
 gem "test_construct"
 
 # application runtime dependencies
