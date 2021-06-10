@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+require 'cloudtruth-importer'
+require 'cloudtruth/importer/cli'
+Cloudtruth::Importer::CLI.run
