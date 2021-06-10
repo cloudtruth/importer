@@ -1,5 +1,5 @@
 [![Build Status](https://github.com/cloudtruth/importer/workflows/CD/badge.svg)](https://github.com/cloudtruth/importer/actions)
-[![Coverage Status](https://codecov.io/gh/cloudtruth/importer/branch/master/graph/badge.svg)](https://codecov.io/gh/cloudtruth/importer)
+[![Coverage Status](https://codecov.io/gh/cloudtruth/importer/branch/main/graph/badge.svg)](https://codecov.io/gh/cloudtruth/importer)
 [![Configured by CloudTruth](https://img.shields.io/badge/configured--by-CloudTruth-blue.svg?style=plastic&labelColor=384047&color=00A6C0&link=https://cloudtruth.com)](https://cloudtruth.com)
 
 # Cloudtruth Importer
