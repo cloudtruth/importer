@@ -33,9 +33,10 @@ docker run -v $(pwd):/data -e CLOUDTRUTH_API_KEY=xyz cloudtruth/importer --dry-r
 ```
 
 It scans the given directories and files (or stdin), parsing those that are a
-form of structured data (json/yaml/dotenv).  The structured data is then passed
-into a transformation template in order to generate parameter definitions that
-are used to drive the cloudtruth cli to create the actual parameters.
+form of structured data (json/yaml/dotenv/properties).  The structured data is
+then passed into a transformation template in order to generate parameter
+definitions that are used to drive the cloudtruth cli to create the actual
+parameters.
 
 The transformation template is processed using the [Liquid template
 language](https://shopify.github.io/liquid/).  The context supplied to each
