@@ -5,3 +5,6 @@ Dockerfile
 pkg
 tmp
 local
+coverage
+.codecov.yml
+.rspec_status

@@ -6,8 +6,10 @@ require "active_support"
 
 module Cloudtruth
   module Importer
-    class Error < StandardError; end
+    VERSION = YAML.load(File.read(File.expand_path('../.app.yml', __dir__)),
+                        filename: File.expand_path('../.app.yml', __dir__),
+                        symbolize_names: true)[:version]
 
-    VERSION = "0.1.0"
+    class Error < StandardError; end
   end
 end
