@@ -1,8 +1,9 @@
 require 'find'
 require 'mimemagic'
-require 'dotenv'
 require 'json'
 require 'yaml'
+require 'dotenv'
+require 'java-properties'
 
 module Cloudtruth
   module Importer
@@ -12,7 +13,9 @@ module Cloudtruth
       class ParseError < Cloudtruth::Importer::Error; end
 
       def self.parse(filename:, contents: nil, type: nil)
-        type ||= MimeMagic.by_path(filename).try(&:type) || (File.basename(filename) =~ /^[\.\-]env/ ? "dotenv" : nil )
+        type ||= MimeMagic.by_path(filename).try(&:type)
+        type ||= (File.basename(filename) =~ /^[\.\-]env/ ? "dotenv" : nil )
+        type ||= (File.extname(filename) == ".properties" ? "properties" : nil )
 
         case type
           when /json/i
@@ -24,6 +27,9 @@ module Cloudtruth
           when /dotenv/i
             logger.debug{"Attempting to parse #{filename} as dotenv"}
             method = Dotenv::Parser.method(:call)
+          when /properties/i
+            logger.debug{"Attempting to parse #{filename} as java properties"}
+            method = JavaProperties.method(:parse)
           else
             logger.warn "Skipping file '#{filename}' due to unknown mime type '#{type}'"
             return nil
@@ -31,7 +37,9 @@ module Cloudtruth
 
         contents ||= File.read(filename)
         begin
-          method.call(contents)
+          result = method.call(contents)
+          result = result.deep_stringify_keys if result.is_a?(Hash)
+          result
         rescue => e
           raise ParseError, "Failed to parse file '#{filename}' as type '#{type}': #{e.class}, #{e.message}"
         end

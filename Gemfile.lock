@@ -20,6 +20,7 @@ GEM
       activesupport
     i18n (1.8.10)
       concurrent-ruby (~> 1.0)
+    java-properties (0.3.0)
     liquid (5.0.1)
     little-plugger (1.1.4)
     logging (2.3.0)
@@ -29,9 +30,11 @@ GEM
     mimemagic (0.4.3)
       nokogiri (~> 1)
       rake
+    mini_portile2 (2.5.3)
     minitest (5.14.4)
     multi_json (1.15.0)
-    nokogiri (1.11.7-x86_64-darwin)
+    nokogiri (1.11.7)
+      mini_portile2 (~> 2.5.0)
       racc (~> 1.4)
     pry (0.13.1)
       coderay (~> 1.1)
@@ -74,6 +77,7 @@ DEPENDENCIES
   codecov
   dotenv
   gem_logger
+  java-properties
   liquid
   logging
   mimemagic

@@ -85,6 +85,18 @@ module Cloudtruth
 
       end
 
+      describe "--stdin" do
+
+        it "requires recognized format" do
+          expect { cli.parse(%w[--stdin json]) }.to_not raise_error
+          expect { cli.parse(%w[--stdin yaml]) }.to_not raise_error
+          expect { cli.parse(%w[--stdin dotenv]) }.to_not raise_error
+          expect { cli.parse(%w[--stdin properties]) }.to_not raise_error
+          expect { cli.parse(%w[--stdin foo]) }.to raise_error(Clamp::UsageError, /--stdin.*Invalid type/)
+        end
+
+      end
+
       describe "paths" do
 
         it "requires stdin or path" do

@@ -30,6 +30,11 @@ module Cloudtruth
           expect(described_class.parse(filename: "stdin", contents: toenv(data), type: "dotenv")).to eq(data)
         end
 
+        it "parses as properties" do
+          expect(described_class.parse(filename: "foo.properties", contents: toenv(data))).to eq(data)
+          expect(described_class.parse(filename: "stdin", contents: toenv(data), type: "properties")).to eq(data)
+        end
+
         it "warns for unknown type" do
           Logging.clear
           expect(described_class.parse(filename: "xyz", contents: JSON.dump(data))).to eq(nil)
