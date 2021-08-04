@@ -1,3 +1,9 @@
+0.1.2 (08/04/2021)
+------------------
+
+* update to latest cli that uses rest client
+* update readme [5b97b57](../../commit/5b97b57)
+
 0.1.1 (07/06/2021)
 ------------------
 
