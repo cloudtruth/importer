@@ -35,7 +35,7 @@ def confirm_execute(*cmds)
   end
 end
 
-task :build_development => [:client] do
+task :build_development do
   image_name = get_var(:image_name, default: "#{APP[:name]}", prompt: false, required: false)
   sh "docker build --target development -t #{image_name}:latest -t #{image_name}:development ."
 end
@@ -54,7 +54,7 @@ task :rspec do
   Rake::Task[:spec].invoke
 end
 
-task :build_release => [:client] do
+task :build_release do
   image_name = get_var(:image_name, default: "#{APP[:name]}", prompt: false, required: false)
   sh "docker build --target release -t #{image_name}:latest -t #{image_name}:release ."
 end
