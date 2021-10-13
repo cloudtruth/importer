@@ -1,16 +1,15 @@
 require 'yaml'
 require 'open-uri'
 
+APP = YAML.load(File.read(".app.yml"), symbolize_names: true)
 ROOT_DIR = File.expand_path(__dir__)
-APP = YAML.load(File.read("#{ROOT_DIR}/.app.yml"), filename: "#{ROOT_DIR}/.app.yml", symbolize_names: true)
-TMP_DIR = "#{ROOT_DIR}/tmp"
 
 require 'rake/clean'
-CLEAN << TMP_DIR
 
-def get_var(name, env_name: name.to_s.upcase, yml_name: name.to_s.downcase.to_sym, prompt: true, required: true)
+def get_var(name, env_name: name.to_s.upcase, yml_name: name.to_s.downcase.to_sym, default: nil, prompt: true, required: true)
   value = ENV[env_name]
   value ||= APP[yml_name]
+  value ||= default
 
   if value.nil? && $stdin.tty? && prompt
     print "Enter '#{name}': "
@@ -25,12 +24,28 @@ def gsub_file(file, pattern, replace)
   File.write(file, File.read(file).gsub(pattern, replace))
 end
 
-task :build_development do
-  sh "docker build --target development -t #{APP[:name]}-development ."
+def confirm_execute(*cmds)
+  puts "Will execute:"
+  cmds.each {|c| puts c}
+  print "\nProceed (y/n)? "
+  if $stdin.gets =~ /^y/i
+    cmds.each { |c| sh c }
+  else
+    puts "Aborted"
+  end
+end
+
+task :build_development => [:client] do
+  image_name = get_var(:image_name, default: "#{APP[:name]}", prompt: false, required: false)
+  sh "docker build --target development -t #{image_name}:latest -t #{image_name}:development ."
 end
 
 task :test => [:build_development] do
-  sh "docker run -e CI -e CODECOV_TOKEN #{APP[:name]}-development test"
+  if ENV['CI'] && ENV['CODECOV_TOKEN']
+    sh "set -e && ci_env=$(curl -s https://codecov.io/env | bash) && docker run -e CI -e CODECOV_TOKEN ${ci_env} #{APP[:name]} test"
+  else
+    sh "docker run -e CI -e CODECOV_TOKEN #{APP[:name]} test"
+  end
 end
 
 task :rspec do
@@ -39,8 +54,9 @@ task :rspec do
   Rake::Task[:spec].invoke
 end
 
-task :build_release do
-  sh "docker build --target release -t #{APP[:name]} ."
+task :build_release => [:client] do
+  image_name = get_var(:image_name, default: "#{APP[:name]}", prompt: false, required: false)
+  sh "docker build --target release -t #{image_name}:latest -t #{image_name}:release ."
 end
 
 task :docker_push do
@@ -56,38 +72,19 @@ end
 task :set_version do
   version = get_var('VERSION')
 
-  gsub_file("#{ROOT_DIR}/.app.yml",
+  gsub_file(".app.yml",
             /version:.*/, "version: #{version}")
 end
 
-task :release do
-  if `git diff --stat`.present?
-    raise "The git tree is dirty, a clean tree is required to release"
-  end
+task :tag_version do
+  raise "The git tree is dirty, a clean tree is required to tag version" unless `git diff --stat`.empty?
 
-  current_branch=`git branch --show-current`
-  default_branch="master"
-  if current_branch != default_branch
-    raise "Can only release from the default branch"
-  end
-
-  Rake::Task[:set_version].invoke
-  bundle
-  Rake::Task[:changelog].invoke
+  version = get_var('VERSION')
 
   cmds = []
-  cmds << 'git ci -m\"Updated changelog\" .'
-  cmds << 'git push'
   cmds << "git tag -f \"v#{version}\""
   cmds << 'git push -f --tags'
-  puts "Will execute:"
-  cmds.each {|c| puts c}
-  print "\nProceed (y/n)? "
-  if $stdin.gets =~ /^y/i
-    cmds.each { |c| sh c }
-  else
-    puts "Aborted"
-  end
+  confirm_execute(*cmds)
 end
 
 task :changelog do
@@ -171,9 +168,17 @@ task :changelog do
 end
 
 task :console do
-  $LOAD_PATH.unshift File.expand_path("lib", __dir__)
-  require "bundler/setup"
-  require "#{APP[:org]}-#{APP[:name]}"
-  require "pry"
-  Pry.start
+  local = get_var(:local, prompt: false, required: false, default: false)
+  image_name = get_var(:image_name, default: "#{APP[:name]}", prompt: false, required: false)
+
+  if local
+    $LOAD_PATH.unshift File.expand_path("lib", __dir__)
+    require "bundler/setup"
+    require APP[:name]
+    require "pry"
+    Pry.start
+  else
+    Rake::Task["build_development"].invoke
+    sh "docker run -it #{image_name}:development console"
+  end
 end
