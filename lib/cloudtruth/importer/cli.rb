@@ -61,7 +61,7 @@ module Cloudtruth
 
       option ["-s", "--stdin"],
              'TYPE', 'Read data from stdin as the given type json, yaml or dotenv' do |a|
-        raise ArgumentError.new("Invalid type") unless a =~ /json|ya?ml|dotenv|properties/
+        raise ArgumentError.new("Invalid type") unless a =~ /json|ya?ml|dotenv|properties|xml/
         a
       end
 

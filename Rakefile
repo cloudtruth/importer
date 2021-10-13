@@ -174,7 +174,7 @@ task :console do
   if local
     $LOAD_PATH.unshift File.expand_path("lib", __dir__)
     require "bundler/setup"
-    require APP[:name]
+    require "#{APP[:org]}-#{APP[:name]}" rescue require "#{APP[:org]}/#{APP[:name]}" rescue require APP[:name]
     require "pry"
     Pry.start
   else

@@ -92,6 +92,7 @@ module Cloudtruth
           expect { cli.parse(%w[--stdin yaml]) }.to_not raise_error
           expect { cli.parse(%w[--stdin dotenv]) }.to_not raise_error
           expect { cli.parse(%w[--stdin properties]) }.to_not raise_error
+          expect { cli.parse(%w[--stdin xml]) }.to_not raise_error
           expect { cli.parse(%w[--stdin foo]) }.to raise_error(Clamp::UsageError, /--stdin.*Invalid type/)
         end
 

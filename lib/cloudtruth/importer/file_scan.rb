@@ -4,6 +4,7 @@ require 'json'
 require 'yaml'
 require 'dotenv'
 require 'java-properties'
+require 'ox'
 
 module Cloudtruth
   module Importer
@@ -17,29 +18,37 @@ module Cloudtruth
         type ||= (File.basename(filename) =~ /^[\.\-]env/ ? "dotenv" : nil )
         type ||= (File.extname(filename) == ".properties" ? "properties" : nil )
 
-        case type
-          when /json/i
-            logger.debug{"Attempting to parse #{filename} as json"}
-            method = JSON.method(:parse)
-          when /ya?ml/i
-            logger.debug{"Attempting to parse #{filename} as yaml"}
-            method = YAML.method(:load)
-          when /dotenv/i
-            logger.debug{"Attempting to parse #{filename} as dotenv"}
-            method = Dotenv::Parser.method(:call)
-          when /properties/i
-            logger.debug{"Attempting to parse #{filename} as java properties"}
-            method = JavaProperties.method(:parse)
-          else
-            logger.warn "Skipping file '#{filename}' due to unknown mime type '#{type}'"
-            return nil
-        end
-
-        contents ||= File.read(filename)
         begin
-          result = method.call(contents)
+
+          case type
+            when /json/i
+              logger.debug{"Attempting to parse #{filename} as json"}
+              contents ||= File.read(filename)
+              result = JSON.parse(contents)
+            when /ya?ml/i
+              logger.debug{"Attempting to parse #{filename} as yaml"}
+              contents ||= File.read(filename)
+              result = YAML.load(contents)
+            when /dotenv/i
+              logger.debug{"Attempting to parse #{filename} as dotenv"}
+              contents ||= File.read(filename)
+              result = Dotenv::Parser.call(contents)
+            when /properties/i
+              logger.debug{"Attempting to parse #{filename} as java properties"}
+              contents ||= File.read(filename)
+              result = JavaProperties.parse(contents)
+            when /xml/i
+              logger.debug{"Attempting to parse #{filename} as xml"}
+              contents ||= File.read(filename)
+              result = Ox.load(contents, mode: :hash)
+            else
+              logger.warn "Skipping file '#{filename}' due to unknown mime type '#{type}'"
+              return nil
+          end
+
           result = result.deep_stringify_keys if result.is_a?(Hash)
-          result
+          return result
+
         rescue => e
           raise ParseError, "Failed to parse file '#{filename}' as type '#{type}': #{e.class}, #{e.message}"
         end

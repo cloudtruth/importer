@@ -35,6 +35,11 @@ module Cloudtruth
           expect(described_class.parse(filename: "stdin", contents: toenv(data), type: "properties")).to eq(data)
         end
 
+        it "parses as xml" do
+          expect(described_class.parse(filename: "foo.xml", contents: "<foo>bar</foo>")).to eq(data)
+          expect(described_class.parse(filename: "stdin", contents: "<foo>bar</foo>", type: "xml")).to eq(data)
+        end
+
         it "warns for unknown type" do
           Logging.clear
           expect(described_class.parse(filename: "xyz", contents: JSON.dump(data))).to eq(nil)

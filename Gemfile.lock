@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (6.1.3.2)
+    activesupport (6.1.4.1)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
@@ -9,7 +9,7 @@ GEM
       zeitwerk (~> 2.3)
     byebug (11.1.3)
     clamp (1.3.2)
-    codecov (0.5.2)
+    codecov (0.6.0)
       simplecov (>= 0.15, < 0.22)
     coderay (1.1.3)
     concurrent-ruby (1.1.9)
@@ -21,7 +21,7 @@ GEM
     i18n (1.8.10)
       concurrent-ruby (~> 1.0)
     java-properties (0.3.0)
-    liquid (5.0.1)
+    liquid (5.1.0)
     little-plugger (1.1.4)
     logging (2.3.0)
       little-plugger (~> 1.1)
@@ -30,20 +30,19 @@ GEM
     mimemagic (0.4.3)
       nokogiri (~> 1)
       rake
-    mini_portile2 (2.5.3)
     minitest (5.14.4)
     multi_json (1.15.0)
-    nokogiri (1.11.7)
-      mini_portile2 (~> 2.5.0)
+    nokogiri (1.12.5-x86_64-darwin)
       racc (~> 1.4)
-    pry (0.13.1)
+    ox (2.14.5)
+    pry (0.14.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
-    pry-byebug (3.9.0)
+    pry-byebug (3.8.0)
       byebug (~> 11.0)
-      pry (~> 0.13.0)
+      pry (~> 0.10)
     racc (1.5.2)
-    rake (13.0.3)
+    rake (13.0.6)
     rspec (3.10.0)
       rspec-core (~> 3.10.0)
       rspec-expectations (~> 3.10.0)
@@ -69,7 +68,7 @@ GEM
     zeitwerk (2.4.2)
 
 PLATFORMS
-  ruby
+  x86_64-darwin-20
 
 DEPENDENCIES
   activesupport
@@ -81,6 +80,7 @@ DEPENDENCIES
   liquid
   logging
   mimemagic
+  ox
   pry
   pry-byebug
   rspec
@@ -88,4 +88,4 @@ DEPENDENCIES
   test_construct
 
 BUNDLED WITH
-   2.1.4
+   2.2.15
