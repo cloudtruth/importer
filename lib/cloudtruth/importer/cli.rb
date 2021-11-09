@@ -142,9 +142,13 @@ module Cloudtruth
         parse_paths do |file:, data:, matches_hash:|
           tmpl_vars = {environment: environment, project: project, filename: file}.merge(matches_hash).merge(data: data)
           result = transformer.render(**tmpl_vars)
-          logger.debug{"Transformed data: #{result}"}
+          logger.debug {"Transformed data: #{result}"}
           param_data = YAML.load(result)
-          params.concat(param_data.collect { |item| Parameter.new(**item) })
+          if param_data.is_a?(Array)
+            params.concat(param_data.collect { |item| Parameter.new(**item) })
+          else
+            logger.warn {"No params in transformed data"}
+          end
         end
         params
       end
