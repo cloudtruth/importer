@@ -1,3 +1,10 @@
+0.1.4 (11/09/2021)
+------------------
+
+* fix setting secrets [b4efb9a](../../commit/b4efb9a)
+* handle invalid yaml [01be3ae](../../commit/01be3ae)
+* support parsing xml [9b111b0](../../commit/9b111b0)
+
 0.1.3 (10/13/2021)
 ------------------
 
