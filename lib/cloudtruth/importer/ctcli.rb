@@ -19,7 +19,7 @@ module Cloudtruth
 
       def set_param(param)
         cmd = %W[cloudtruth --env #{param.environment} --project #{param.project} param set]
-        cmd << "--secret" if param.secret
+        cmd << "--secret" << "true" if param.secret
         if ! param.value.nil?
           cmd.concat(%W[--value #{param.value}])
         else
