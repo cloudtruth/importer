@@ -108,7 +108,7 @@ module Cloudtruth
 
         it "sets a secret param" do
           param = Parameter.new(environment: "env1", project: "proj1", key: "key1", value: "value1", secret: true)
-          expect(cli).to receive(:execute).with(*%w[cloudtruth --env env1 --project proj1 param set --secret --value value1 key1])
+          expect(cli).to receive(:execute).with(*%w[cloudtruth --env env1 --project proj1 param set --secret true --value value1 key1])
           cli.set_param(param)
         end
 
