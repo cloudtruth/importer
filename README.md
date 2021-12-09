@@ -67,11 +67,12 @@ that is a list of parameter definitions of the form:
 
 ```yaml
  - environment: someEnvironment,  # The environment to set the value for
+   environment_parent: someParentEnv,  # The environment's parent if using --create-environments
    project: someProject, # The project to create the parameter in
    key: aKey, # The key name of the parameter
    value: aValue, # The value for the parameter.  Don't set this if using FQN+JMES
    secret: false, # (optional) Indicate that the parameter should be created as a secret
-   fqn: myFQN, # (optional) Set the parameter value to come from the given FQN+JMES
+   fqn: myFQN, # (optional) Set the parameter value to come from the given FQN (with optional JMES) 
    jmes: myJmesPath # (optional) Set the parameter value to come from the given FQN+JMES
 ```
 
