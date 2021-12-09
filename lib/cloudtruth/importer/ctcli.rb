@@ -23,7 +23,8 @@ module Cloudtruth
         if ! param.value.nil?
           cmd.concat(%W[--value #{param.value}])
         else
-          cmd.concat(%W[--fqn #{param.fqn} --jmes #{param.jmes}])
+          cmd.concat(%W[--fqn #{param.fqn}])
+          cmd.concat(%W[--jmes #{param.jmes}]) if param.jmes.present?
         end
         cmd << param.key
 
@@ -40,8 +41,10 @@ module Cloudtruth
         Set.new(data.split)
       end
 
-      def ensure_environment(environment)
-        cmd = %W[cloudtruth environments set #{environment}]
+      def ensure_environment(environment, parent=nil)
+        cmd = %W[cloudtruth environments set]
+        cmd.concat(%W[--parent #{parent}]) if parent.present?
+        cmd << environment
         if @dry_run
           logger.info cmd.inspect
         else
@@ -66,7 +69,17 @@ module Cloudtruth
 
       def get_param_names(project)
         cmd = %W[cloudtruth --project #{project} param ls]
-        data = execute(*cmd, capture_stdout: true)
+        data = ""
+        begin
+          data = execute(*cmd, capture_stdout: true)
+        rescue
+          if @dry_run
+            logger.warn "Ignoring failure in param lookup failure due to dry run"
+            data = ""
+          else
+            raise
+          end
+        end
         if data =~ /No parameters found/
           data = ""
         end

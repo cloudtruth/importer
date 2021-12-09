@@ -48,7 +48,7 @@ module Cloudtruth
                A transformation template (https://shopify.github.io/liquid/) to
                convert input data to a list of parameters.  This should
                generate a yaml list of parameters, each a hash of
-               {environment:, project:, key:, value;, secret:, fqn:, jmes:}.
+               {environment:, environment_parent:, project:, key:, value;, secret:, fqn:, jmes:}.
                The template context will contain the variables environment,
                project, data, filename, and any named captures from matching
                against the filename.
@@ -153,12 +153,36 @@ module Cloudtruth
         params
       end
 
+      def ensure_environments(cli, params)
+        envs = params.collect {|p| {environment: p[:environment], parent: p[:environment_parent].blank? ? "default" : p[:environment_parent]} }.compact.uniq
+        parents = params.collect {|p| {environment: p[:environment_parent].blank? ? "default" : p[:environment_parent], parent: "default"} }.compact.uniq
+        parents.delete_if {|p| envs.any? {|e| p[:environment] == e[:environment]} }
+
+        envs_by_parent = (envs + parents).uniq.group_by {|e| e[:parent] }
+        ordered_envs = envs_by_parent.delete("default")
+        ordered_envs.each do |oe|
+          each_level_envs = envs_by_parent.delete(oe[:environment])
+          ordered_envs.concat(each_level_envs) if each_level_envs
+        end
+        logger.debug { "Environment creation order: #{ordered_envs.inspect}"}
+
+        ordered_envs.each do |env|
+          next if env[:environment] == "default"
+          cli.ensure_environment(env[:environment], env[:parent])
+        end
+      end
+
+      def ensure_projects(cli, params)
+        projects = params.collect {|p| p[:project] }.compact.uniq
+        projects.each {|project| cli.ensure_project(project) }
+      end
+
       def apply_params(params)
         cli = CtCLI.new(dry_run: dry_run?)
+        ensure_environments(cli, params) if create_environments?
+        ensure_projects(cli, params) if create_projects?
         param_groups = params.group_by {|p| {environment: p[:environment], project: p[:project]} }
         param_groups.each do |group, params|
-          cli.ensure_environment(group[:environment]) if create_environments?
-          cli.ensure_project(group[:project]) if create_projects?
           unless override?
             existing = cli.get_param_names(group[:project])
             logger.debug {"Existing parameters for #{group}: #{existing.inspect}"}

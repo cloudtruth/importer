@@ -64,6 +64,11 @@ module Cloudtruth
           cli.ensure_environment("env1")
         end
 
+        it "ensures parented environment" do
+          expect(cli).to receive(:execute).with(*%w[cloudtruth environments set --parent parentenv env1])
+          cli.ensure_environment("env1", "parentenv")
+        end
+
       end
 
       describe "get_projects" do
@@ -96,6 +101,16 @@ module Cloudtruth
           expect(cli.get_param_names("proj1")).to eq(Set.new([]))
         end
 
+        it "ignores failure for dry run" do
+          cli = described_class.new(dry_run: false)
+          expect(cli).to receive(:execute).with(*%w[cloudtruth --project proj1 param ls], capture_stdout: true).and_raise(RuntimeError, "bad")
+          expect{cli.get_param_names("proj1")}.to raise_error(RuntimeError, "bad")
+
+          cli = described_class.new(dry_run: true)
+          expect(cli).to receive(:execute).with(*%w[cloudtruth --project proj1 param ls], capture_stdout: true).and_raise(RuntimeError, "bad")
+          expect(cli.get_param_names("proj1")).to eq(Set.new())
+        end
+
       end
 
       describe "set_param" do
@@ -115,6 +130,12 @@ module Cloudtruth
         it "sets a fqn/jmes param" do
           param = Parameter.new(environment: "env1", project: "proj1", key: "key1", fqn: "fqn1", jmes: "jmes1")
           expect(cli).to receive(:execute).with(*%w[cloudtruth --env env1 --project proj1 param set --fqn fqn1 --jmes jmes1 key1])
+          cli.set_param(param)
+        end
+
+        it "sets a only a fqn param" do
+          param = Parameter.new(environment: "env1", project: "proj1", key: "key1", fqn: "fqn1")
+          expect(cli).to receive(:execute).with(*%w[cloudtruth --env env1 --project proj1 param set --fqn fqn1 key1])
           cli.set_param(param)
         end
 

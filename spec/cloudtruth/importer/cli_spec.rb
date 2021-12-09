@@ -165,6 +165,54 @@ module Cloudtruth
 
       end
 
+      describe "ensure_projects" do
+
+        it "creates projects" do
+          expect(ctcli).to receive(:ensure_project).with(param.project)
+          cli.ensure_projects(ctcli, [param])
+        end
+
+      end
+
+      describe "ensure_environments" do
+
+        it "creates environments" do
+          param.environment = "foo"
+          expect(ctcli).to receive(:ensure_environment).with(param.environment, "default")
+          cli.ensure_environments(ctcli, [param])
+        end
+
+        it "doesn't create default environment" do
+          param.environment = "default"
+          expect(ctcli).to_not receive(:ensure_environment)
+          cli.ensure_environments(ctcli, [param])
+        end
+
+        it "creates environment heirarchy" do
+          params = [
+            Parameter.new(environment: "env2", environment_parent: "env1", project: "default", key: "foo", value: "bar"),
+            Parameter.new(environment: "env3", environment_parent: "env2", project: "default", key: "foo", value: "bar"),
+            Parameter.new(environment: "env1", environment_parent: "default", project: "default", key: "foo", value: "bar"),
+          ]
+          expect(ctcli).to receive(:ensure_environment).with("env1", "default").ordered
+          expect(ctcli).to receive(:ensure_environment).with("env2", "env1").ordered
+          expect(ctcli).to receive(:ensure_environment).with("env3", "env2").ordered
+          cli.ensure_environments(ctcli, params)
+        end
+
+        it "creates environments for unassociated parents" do
+          params = [
+            Parameter.new(environment: "env1", environment_parent: "default", project: "default", key: "foo", value: "bar"),
+            Parameter.new(environment: "env3", environment_parent: "other", project: "default", key: "foo", value: "bar"),
+          ]
+          expect(ctcli).to receive(:ensure_environment).with("env1", "default").ordered
+          expect(ctcli).to receive(:ensure_environment).with("other", "default").ordered
+          expect(ctcli).to receive(:ensure_environment).with("env3", "other").ordered
+          cli.ensure_environments(ctcli, params)
+        end
+
+      end
+
       describe "apply_params" do
 
         it "uses cli to set params" do
@@ -194,23 +242,21 @@ module Cloudtruth
           cli.apply_params([param])
         end
 
-        it "ensures environment with --create-environments" do
+        it "ensures environments with --create-environments" do
           cli.parse(%w[--create-environments path])
           expect(CtCLI).to receive(:new).with(dry_run: false).and_return(ctcli)
-          expect(ctcli).to receive(:get_param_names).and_return([])
-          expect(ctcli).to receive(:ensure_environment).with(param.environment)
-          expect(ctcli).to_not receive(:ensure_project)
-          expect(ctcli).to receive(:set_params).with([param])
+          allow(ctcli).to receive(:get_param_names).and_return([])
+          expect(cli).to receive(:ensure_environments).with(ctcli, [param])
+          expect(cli).to_not receive(:ensure_projects)
           cli.apply_params([param])
         end
 
-        it "ensures project with --create-projects" do
+        it "ensures projects with --create-environments" do
           cli.parse(%w[--create-projects path])
           expect(CtCLI).to receive(:new).with(dry_run: false).and_return(ctcli)
-          expect(ctcli).to receive(:get_param_names).and_return([])
-          expect(ctcli).to_not receive(:ensure_environment)
-          expect(ctcli).to receive(:ensure_project).with(param.project)
-          expect(ctcli).to receive(:set_params).with([param])
+          allow(ctcli).to receive(:get_param_names).and_return([])
+          expect(cli).to receive(:ensure_projects).with(ctcli, [param])
+          expect(cli).to_not receive(:ensure_environments)
           cli.apply_params([param])
         end
 

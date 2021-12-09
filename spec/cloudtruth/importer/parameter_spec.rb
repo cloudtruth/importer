@@ -5,7 +5,7 @@ module Cloudtruth
   module Importer
     describe Parameter do
 
-      let(:all_attrs) { Hash[[:environment, :project, :key, :value, :secret, :fqn, :jmes].collect {|a| [a, a]}] }
+      let(:all_attrs) { Hash[[:environment, :environment_parent, :project, :key, :value, :secret, :fqn, :jmes].collect {|a| [a, a]}] }
       let(:min_attrs) { Hash[[:environment, :project, :key, :value].collect {|a| [a, a]}] }
 
       describe "validations" do
@@ -37,15 +37,15 @@ module Cloudtruth
           expect { described_class.new(min_attrs.merge(value: "")) }.to_not raise_error
         end
 
-        it "requires fqn and jmes in place of value" do
+        it "requires fqn and optionally jmes in place of value" do
           attrs = min_attrs.reject {|k,v| k == :value}
           expect { described_class.new(attrs) }.to raise_error(ArgumentError, /fqn.*is required/)
           attrs = attrs.merge(fqn: :fqn)
-          expect { described_class.new(attrs) }.to raise_error(ArgumentError, /jmes.*is required/)
+          expect { described_class.new(attrs) }.to_not raise_error
           attrs = attrs.merge(jmes: :jmes)
           expect { described_class.new(attrs) }.to_not raise_error
 
-          expect { described_class.new(min_attrs.reject {|k,v| k == :value}.merge(fqn: :fqn, jmes: "")) }.to raise_error(ArgumentError, /jmes.*is required/)
+          expect { described_class.new(min_attrs.reject {|k,v| k == :value}.merge(fqn: :fqn, jmes: "")) }.to_not raise_error
           expect { described_class.new(min_attrs.reject {|k,v| k == :value}.merge(fqn: "", jmes: :jmes)) }.to raise_error(ArgumentError, /jmes.*is required/)
         end
 

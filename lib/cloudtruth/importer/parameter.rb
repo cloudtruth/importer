@@ -1,6 +1,6 @@
 module Cloudtruth
   module Importer
-    Parameter = Struct.new(:environment, :project, :key, :value, :secret, :fqn, :jmes, keyword_init: true) do
+    Parameter = Struct.new(:environment, :environment_parent, :project, :key, :value, :secret, :fqn, :jmes, keyword_init: true) do
       include GemLogger::LoggerSupport
 
       def initialize(*args, **kwargs)
@@ -12,7 +12,7 @@ module Cloudtruth
 
         # value can be empty string, but fqn/jmes can't
         if value.nil?
-          if fqn.blank? || jmes.blank?
+          if fqn.blank?
             raise ArgumentError.new("A parameter value or fqn+jmes is required")
           end
         else
