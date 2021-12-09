@@ -1,3 +1,8 @@
+0.1.5 (12/08/2021)
+------------------
+
+* handle parent environments, make jmes optional [df0263a](../../commit/df0263a)
+
 0.1.4 (11/09/2021)
 ------------------
 
