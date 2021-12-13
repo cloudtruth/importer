@@ -1,6 +1,6 @@
 module Cloudtruth
   module Importer
-    Parameter = Struct.new(:environment, :environment_parent, :project, :key, :value, :secret, :fqn, :jmes, keyword_init: true) do
+    Parameter = Struct.new(:environment, :environment_parent, :project, :project_parent, :key, :value, :secret, :fqn, :jmes, keyword_init: true) do
       include GemLogger::LoggerSupport
 
       def initialize(*args, **kwargs)

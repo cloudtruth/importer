@@ -58,8 +58,10 @@ module Cloudtruth
         Set.new(data.split)
       end
 
-      def ensure_project(project)
-        cmd = %W[cloudtruth projects set #{project}]
+      def ensure_project(project, parent=nil)
+        cmd = %W[cloudtruth projects set]
+        cmd.concat(%W[--parent #{parent}]) if parent.present?
+        cmd << project
         if @dry_run
           logger.info cmd.inspect
         else

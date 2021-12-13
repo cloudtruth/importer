@@ -173,8 +173,22 @@ module Cloudtruth
       end
 
       def ensure_projects(cli, params)
-        projects = params.collect {|p| p[:project] }.compact.uniq
-        projects.each {|project| cli.ensure_project(project) }
+        projs = params.collect {|p| {project: p[:project], parent: p[:project_parent].blank? ? "" : p[:project_parent]} }.compact.uniq
+        parents = params.collect {|p| {project: p[:project_parent].blank? ? "" : p[:project_parent], parent: ""} }.compact.uniq
+        parents.delete_if {|p| p[:project].blank? || projs.any? {|e| p[:project] == e[:project]} }
+
+        projs_by_parent = (projs + parents).uniq.group_by {|e| e[:parent] }
+        ordered_projs = projs_by_parent.delete("")
+        ordered_projs.each do |oe|
+          each_level_projs = projs_by_parent.delete(oe[:project])
+          ordered_projs.concat(each_level_projs) if each_level_projs
+        end
+        logger.debug { "Project creation order: #{ordered_projs.inspect}"}
+
+        ordered_projs.each do |proj|
+          next if proj[:project] == ""
+          cli.ensure_project(proj[:project], proj[:parent])
+        end
       end
 
       def apply_params(params)

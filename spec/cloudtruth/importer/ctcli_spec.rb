@@ -87,6 +87,12 @@ module Cloudtruth
           cli.ensure_project("proj1")
         end
 
+        it "ensures parented project" do
+          expect(cli).to receive(:execute).with(*%w[cloudtruth projects set --parent parentproj proj1])
+          cli.ensure_project("proj1", "parentproj")
+        end
+
+
       end
 
       describe "get_param_names" do

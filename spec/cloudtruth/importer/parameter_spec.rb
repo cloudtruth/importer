@@ -5,7 +5,7 @@ module Cloudtruth
   module Importer
     describe Parameter do
 
-      let(:all_attrs) { Hash[[:environment, :environment_parent, :project, :key, :value, :secret, :fqn, :jmes].collect {|a| [a, a]}] }
+      let(:all_attrs) { Hash[[:environment, :environment_parent, :project, :project_parent, :key, :value, :secret, :fqn, :jmes].collect {|a| [a, a]}] }
       let(:min_attrs) { Hash[[:environment, :project, :key, :value].collect {|a| [a, a]}] }
 
       describe "validations" do

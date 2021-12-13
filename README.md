@@ -69,6 +69,7 @@ that is a list of parameter definitions of the form:
  - environment: someEnvironment,  # The environment to set the value for
    environment_parent: someParentEnv,  # The environment's parent if using --create-environments
    project: someProject, # The project to create the parameter in
+   project_parent: someParentProj,  # The project's parent if using --create-projects
    key: aKey, # The key name of the parameter
    value: aValue, # The value for the parameter.  Don't set this if using FQN+JMES
    secret: false, # (optional) Indicate that the parameter should be created as a secret

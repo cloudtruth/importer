@@ -168,10 +168,32 @@ module Cloudtruth
       describe "ensure_projects" do
 
         it "creates projects" do
-          expect(ctcli).to receive(:ensure_project).with(param.project)
+          expect(ctcli).to receive(:ensure_project).with(param.project, "")
           cli.ensure_projects(ctcli, [param])
         end
 
+        it "creates project heirarchy" do
+          params = [
+            Parameter.new(project: "proj2", project_parent: "proj1", environment: "default", key: "foo", value: "bar"),
+            Parameter.new(project: "proj3", project_parent: "proj2", environment: "default", key: "foo", value: "bar"),
+            Parameter.new(project: "proj1", environment: "default", key: "foo", value: "bar"),
+          ]
+          expect(ctcli).to receive(:ensure_project).with("proj1", "").ordered
+          expect(ctcli).to receive(:ensure_project).with("proj2", "proj1").ordered
+          expect(ctcli).to receive(:ensure_project).with("proj3", "proj2").ordered
+          cli.ensure_projects(ctcli, params)
+        end
+
+        it "creates projects for unassociated parents" do
+          params = [
+            Parameter.new(project: "proj1", project_parent: "", environment: "default", key: "foo", value: "bar"),
+            Parameter.new(project: "proj3", project_parent: "other", environment: "default", key: "foo", value: "bar"),
+          ]
+          expect(ctcli).to receive(:ensure_project).with("proj1", "").ordered
+          expect(ctcli).to receive(:ensure_project).with("other", "").ordered
+          expect(ctcli).to receive(:ensure_project).with("proj3", "other").ordered
+          cli.ensure_projects(ctcli, params)
+        end
       end
 
       describe "ensure_environments" do
