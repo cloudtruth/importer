@@ -1,3 +1,9 @@
+0.2.0 (12/14/2021)
+------------------
+
+* more user friendly error messages [58c2d13](../../commit/58c2d13)
+* add some liquid filters [468b73b](../../commit/468b73b)
+
 0.1.6 (12/13/2021)
 ------------------
 
