@@ -23,6 +23,345 @@ module Cloudtruth
 
       end
 
+      describe "CustomLiquidFilters" do
+
+        include Cloudtruth::Importer::Template::CustomLiquidFilters
+  
+        describe "#dns_safe" do
+  
+          it "returns if already valid" do
+            str = "foo"
+            expect(dns_safe(str)).to equal(str)
+          end
+  
+          it "cleans up name" do
+            expect(dns_safe("foo_bar")).to eq("foo-bar")
+          end
+  
+          it "forces lower case" do
+            expect(dns_safe("Foo_Bar")).to eq("foo-bar")
+          end
+  
+          it "simplifies successive non-chars" do
+            expect(dns_safe("foo_&!bar")).to eq("foo-bar")
+          end
+  
+          it "strips leading/trailing non-chars" do
+            expect(dns_safe("_foo!bar_")).to eq("foo-bar")
+          end
+  
+        end
+  
+        describe "#env_safe" do
+  
+          it "returns if already valid" do
+            str = "FOO"
+            expect(env_safe(str)).to equal(str)
+          end
+  
+          it "cleans up name" do
+            expect(env_safe("foo-bar")).to eq("FOO_BAR")
+          end
+  
+          it "forces upper case" do
+            expect(env_safe("Foo")).to eq("FOO")
+          end
+  
+          it "precedes leading digit with underscore" do
+            expect(env_safe("9foo")).to eq("_9FOO")
+          end
+  
+          it "simplifies successive non-chars" do
+            expect(env_safe("foo-&!bar")).to eq("FOO_BAR")
+          end
+  
+          it "preserves successive underscores" do
+            expect(env_safe("__foo__bar__")).to eq("__FOO__BAR__")
+          end
+  
+          it "strips leading/trailing non-chars" do
+            expect(env_safe("-foo!bar-")).to eq("FOO_BAR")
+          end
+  
+        end
+  
+        describe "#key_safe" do
+  
+          it "returns if already valid" do
+            str = "aB1-_."
+            expect(key_safe(str)).to equal(str)
+          end
+  
+          it "cleans up name" do
+            expect(key_safe("Foo/Bar.Baz-0")).to eq("Foo_Bar.Baz-0")
+          end
+  
+          it "simplifies successive non-chars" do
+            expect(key_safe("foo/&!bar")).to eq("foo_bar")
+          end
+  
+        end
+  
+        describe "#indent" do
+  
+          it "indents by count spaces for each line" do
+            expect(indent("foo\nbar", 3)).to eq("   foo\n   bar")
+          end
+  
+        end
+  
+        describe "#nindent" do
+  
+          it "indents by count spaces for each line with a leading newline" do
+            expect(nindent("foo\nbar", 3)).to eq("   \n   foo\n   bar")
+          end
+  
+        end
+  
+        describe "#stringify" do
+  
+          it "produces a yaml string" do
+            expect(stringify("foo")).to eq('"foo"')
+            expect(stringify(%q(foo'"bar))).to eq(%q("foo'\"bar"))
+          end
+  
+        end
+  
+        describe "#to_yaml" do
+  
+          it "produces a yaml string" do
+            expect(to_yaml([1, 2])).to eq("---\n- 1\n- 2\n")
+            # also check how liquid handles named parameters
+            expect(described_class.new("{{ var | to_yaml }}").render(var: [1, 2])).to eq("---\n- 1\n- 2\n")
+          end
+  
+          it "produces header free yaml" do
+            expect(to_yaml([1, 2], "no_header" => false)).to eq("---\n- 1\n- 2\n")
+            expect(to_yaml([1, 2], "no_header" => true)).to eq("- 1\n- 2\n")
+            expect(to_yaml({"foo" => "bar"}, "no_header" => true)).to eq("foo: bar\n")
+            # also verify that liquid handles named parameters
+            expect(described_class.new("{{ var | to_yaml: no_header: true}}").render(var: [1, 2])).to eq("- 1\n- 2\n")
+            expect(described_class.new("{{ var | to_yaml: no_header: false}}").render(var: [1, 2])).to eq("---\n- 1\n- 2\n")
+          end
+  
+        end
+  
+        describe "#to_json" do
+  
+          it "produces a json string" do
+            expect(to_json({"foo" => "bar"})).to eq('{"foo":"bar"}')
+          end
+  
+        end
+  
+        describe "#sha256" do
+  
+          it "does a sha256 digest" do
+            expect(sha256("foo")).to eq(Digest::SHA256.hexdigest("foo"))
+          end
+  
+        end
+  
+        describe "#encode64" do
+  
+          it "does a base64 encode" do
+            expect(encode64("foo")).to eq(Base64.strict_encode64("foo"))
+          end
+  
+        end
+  
+        describe "#decode64" do
+  
+          it "does a base64 decode" do
+            expect(decode64(Base64.strict_encode64("foo"))).to eq("foo")
+          end
+  
+        end
+  
+        describe "#inflate" do
+  
+          it "works with empty" do
+            expect(inflate({})).to eq({})
+          end
+  
+          it "adds structure using delimiter" do
+            data = {
+              "topval" => 0,
+              "top.mid.bottom1" => 1,
+              "top.mid.bottom2" => 2,
+              "top.midval" => 3,
+              "other.someval" => 4
+            }
+            result = {
+              "topval" => 0,
+              "top" => {
+                "mid" => {
+                  "bottom1" => 1,
+                  "bottom2" => 2
+                },
+                "midval" => 3
+              },
+              "other" => {
+                "someval" => 4
+              }
+            }
+            expect(inflate(data)).to eq(result)
+          end
+  
+          it "can use other delimiter" do
+            data = {
+              "top/mid/bottom1" => 1
+            }
+            result = {
+              "top" => {
+                "mid" => {
+                  "bottom1" => 1
+                }
+              }
+            }
+            expect(inflate(data, "/")).to eq(result)
+          end
+  
+          it "can use regex delimiter" do
+            data = {
+              "top//mid///bottom1" => 1
+            }
+            result = {
+              "top" => {
+                "mid" => {
+                  "bottom1" => 1
+                }
+              }
+            }
+            expect(inflate(data, "/+")).to eq(result)
+          end
+  
+        end
+  
+        describe "#deflate" do
+  
+          it "works with empty" do
+            expect(inflate({})).to eq({})
+          end
+  
+          it "adds structure using delimiter" do
+            result = {
+              "topstr" => "hi",
+              "topnum" => 3,
+              "toptrue" => true,
+              "topfalse" => false,
+              "toplist" => "[1,2,3]",
+              "top.mid.bottom1" => 1,
+              "top.mid.bottom2" => 2,
+              "top.midval" => 3,
+              "other.someval" => 4
+            }
+            data = {
+              "topstr" => "hi",
+              "topnum" => 3,
+              "toptrue" => true,
+              "topfalse" => false,
+              "toplist" => [1, 2, 3],
+              "top" => {
+                "mid" => {
+                  "bottom1" => 1,
+                  "bottom2" => 2
+                },
+                "midval" => 3
+              },
+              "other" => {
+                "someval" => 4
+              }
+            }
+            expect(deflate(data)).to eq(result)
+          end
+  
+          it "can use other delimiter" do
+            result = {
+              "top/mid/bottom1" => 1
+            }
+            data = {
+              "top" => {
+                "mid" => {
+                  "bottom1" => 1
+                }
+              }
+            }
+            expect(deflate(data, "/")).to eq(result)
+          end
+  
+        end
+  
+        describe "#typify" do
+  
+          it "works with empty" do
+            expect(typify(nil)).to eq(nil)
+            expect(typify("")).to eq("")
+            expect(typify(true)).to eq(true)
+            expect(typify(3)).to eq(3)
+            expect(typify(3.4)).to eq(3.4)
+            expect(typify({})).to eq({})
+            expect(typify([])).to eq([])
+          end
+  
+          it "converts string to type" do
+            expect(typify("hello")).to eq("hello")
+            expect(typify("true")).to eq(true)
+            expect(typify("false")).to eq(false)
+            expect(typify("3")).to eq(3)
+            expect(typify("3.4")).to eq(3.4)
+          end
+  
+          it "recursively typifys structure" do
+            data = {
+              "top" => {
+                "mid" => [
+                  {
+                    "bottom" => "1"
+                  },
+                  {
+                    "bottom" => "1.2"
+                  },
+                  {
+                    "bottom" => "true"
+                  },
+                  {
+                    "bottom" => "false"
+                  },
+                  {
+                    "bottom" => "hello"
+                  }
+                ]
+              }
+            }
+            result = {
+              "top" => {
+                "mid" => [
+                  {
+                    "bottom" => 1
+                  },
+                  {
+                    "bottom" => 1.2
+                  },
+                  {
+                    "bottom" => true
+                  },
+                  {
+                    "bottom" => false
+                  },
+                  {
+                    "bottom" => "hello"
+                  }
+                ]
+              }
+            }
+            expect(typify(data)).to eq(result)
+          end
+  
+        end
+  
+      end
+  
       describe "#render" do
 
         it "works with plain strings" do
