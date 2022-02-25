@@ -357,9 +357,84 @@ module Cloudtruth
             }
             expect(typify(data)).to eq(result)
           end
+
+          it "converts embedded json" do
+            expect(typify('[1, 2, 3]')).to eq([1, 2, 3])
+            expect(typify('{"foo": "bar"}')).to eq({"foo" => "bar"})
+          end
+
+          it "converts embedded yaml" do
+            expect(typify('[1, 2, 3]', "yaml")).to eq([1, 2, 3])
+            expect(typify('{foo: bar}', "yaml")).to eq({"foo" => "bar"})
+          end
+
+          it "recurses conversion of embedded" do
+            expect(typify('[1, 2, "3"]')).to eq([1, 2, 3])
+            expect(typify('{"foo": "true"}')).to eq({"foo" => true})
+          end
+
+          it "fails for invalid parser on embedded yaml" do
+            expect { typify("[1, 2, 3]", "yoyo") }.to raise_error(RuntimeError, /Invalid typify parser/)
+          end
+
+        end
+  
+        describe "#merge" do
+
+          it "merges two maps" do
+            m1 = {"x" => "y", "a" => "z"}
+            m2 = {"a" => "b", "y" => "z"}
+            expect(merge(m1, m2)).to eq(m1.merge(m2))
+            expect(described_class.new("{{ m1 | merge: m2 | to_json }}").render(m1: m1, m2: m2)).to eq(m1.merge(m2).to_json)
+          end
+  
+  
+          it "handles nil rhs" do
+            m1 = {"x" => "y", "a" => "z"}
+            m2 = nil
+            expect(merge(m1, m2)).to eq(m1)
+            expect(described_class.new("{{ m1 | merge: m2 | to_json }}").render(m1: m1, m2: m2)).to eq(m1.to_json)
+          end
   
         end
   
+        describe "#re_replace" do
+  
+          it "performs gsub" do
+            expect(re_replace("foobar", "o+", "X")).to eq("fXbar")
+            expect(described_class.new('{{ "foobar" | re_replace: "o+", "X" }}').render()).to eq("fXbar")
+          end
+  
+          it "handles flags" do
+            expect(re_replace("fOObar", "o+", "X")).to eq("fOObar")
+            expect(re_replace("fOObar", "o+", "X", "i")).to eq("fXbar")
+            expect(re_replace("FOO\nOO", "f.*", "X", "i")).to eq("X\nOO")
+            expect(re_replace("FOO\nOO", "f.*", "X", "mi")).to eq("X")
+          end
+  
+          it "handles backrefs" do
+            expect(re_replace("foobar", "(o+)b", "XX\\1YY")).to eq("fXXooYYar")
+          end
+  
+        end
+  
+        describe "#re_contains" do
+  
+          it "performs match" do
+            expect(re_contains("foobar", "o+")).to eq(true)
+            expect(re_contains("foobar", "x+")).to eq(false)
+            expect(described_class.new('{{ "foobar" | re_contains: "o+" }}').render()).to eq("true")
+          end
+  
+          it "handles flags" do
+            expect(re_contains("fOObar", "o+")).to eq(false)
+            expect(re_contains("fOObar", "o+", "i")).to eq(true)
+            expect(re_contains("FOO\nOO", "f.{5}", "i")).to eq(false)
+            expect(re_contains("FOO\nOO", "f.{5}", "mi")).to eq(true)
+          end
+  
+        end
+
       end
   
       describe "#render" do

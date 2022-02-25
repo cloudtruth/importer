@@ -114,12 +114,22 @@ module Cloudtruth
           result
         end
   
-        def typify(data)
+        def typify(data, parser="json")
           case data
             when Hash
               Hash[data.collect {|k,v| [k, typify(v)] }]
             when Array
               data.collect {|v| typify(v) }
+            when /^\s*\[.*\]\s*$/, /^\s*\{.*\}\s*$/
+              parsed = case parser
+              when /json/i
+                JSON.load(data)
+              when /ya?ml/i
+                YAML.load(data)
+              else
+                raise "Invalid typify parser"
+              end
+              typify(parsed)
             when /^[0-9]+$/
               data.to_i
             when /^[0-9\.]+$/
@@ -131,6 +141,26 @@ module Cloudtruth
           end
         end
   
+        def merge(lhs_map, rhs_map)
+          lhs_map.merge(rhs_map || {})
+        end
+  
+        REGEXP_FLAGS = {
+          'i' => Regexp::IGNORECASE,
+          'm' => Regexp::MULTILINE,
+          'e' => Regexp::EXTENDED
+        }
+  
+        def re_replace(string, pattern, replacement, flags="")
+          allflags = flags.chars.inject(0) {|sum, n| sum | REGEXP_FLAGS[n] }
+          string.gsub(Regexp.new(pattern, allflags), replacement)
+        end
+  
+        def re_contains(string, pattern, flags="")
+          allflags = flags.chars.inject(0) {|sum, n| sum | REGEXP_FLAGS[n] }
+          return (string =~ Regexp.new(pattern, allflags)) != nil
+        end
+
       end
   
       Liquid::Template.register_filter(CustomLiquidFilters)
