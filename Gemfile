@@ -4,6 +4,9 @@ source "https://rubygems.org"
 group :development do
   gem "pry"
   gem "pry-byebug"
+  gem "ruby-debug-ide"
+  gem "debase"
+  gem "solargraph"
 end
 
 # test dependencies
