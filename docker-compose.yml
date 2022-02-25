@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+
+  # docker compose run importer --dry-run --stdin yaml
+  importer:
+    image: cloudtruth/importer
+    environment:
+      CLOUDTRUTH_API_KEY: ${CLOUDTRUTH_API_KEY}
+    volumes:
+      - .:/data
+    stdin_open: true
+    tty: true
+
+  importerdev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      CLOUDTRUTH_API_KEY: ${CLOUDTRUTH_API_KEY}
+    volumes:
+      - .:/srv/app
+      - .:/data
+    stdin_open: true
+    tty: true
