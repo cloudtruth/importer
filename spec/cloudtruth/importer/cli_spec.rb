@@ -240,34 +240,23 @@ module Cloudtruth
         it "uses cli to set params" do
           cli.parse(%w[path])
           expect(CtCLI).to receive(:new).with(dry_run: false).and_return(ctcli)
-          expect(ctcli).to receive(:get_param_names).and_return([])
-          expect(ctcli).to receive(:set_params).with([param])
-          expect(ctcli).to_not receive(:ensure_environment)
-          expect(ctcli).to_not receive(:ensure_project)
+          expect(ctcli).to receive(:import_params).with(environment: param.environment, project: param.project, parameters: [param], no_inherit: false)
+          expect(cli).to_not receive(:ensure_projects)
+          expect(cli).to_not receive(:ensure_environments)
           cli.apply_params([param])
         end
 
-        it "skips existing params" do
-          cli.parse(%w[path])
-          param2 = param.dup; param.key = "key2"
-          expect(CtCLI).to receive(:new).with(dry_run: false).and_return(ctcli)
-          expect(ctcli).to receive(:get_param_names).and_return([param.key])
-          expect(ctcli).to receive(:set_params).with([param2])
-          cli.apply_params([param, param2])
-        end
-
-        it "forces set of existing params with --override" do
+        it "forces set of no_inherit with --override" do
           cli.parse(%w[--override path])
           expect(CtCLI).to receive(:new).with(dry_run: false).and_return(ctcli)
-          expect(ctcli).to_not receive(:get_param_names)
-          expect(ctcli).to receive(:set_params).with([param])
+          expect(ctcli).to receive(:import_params).with(environment: param.environment, project: param.project, parameters: [param], no_inherit: true)
           cli.apply_params([param])
         end
 
         it "ensures environments with --create-environments" do
           cli.parse(%w[--create-environments path])
           expect(CtCLI).to receive(:new).with(dry_run: false).and_return(ctcli)
-          allow(ctcli).to receive(:get_param_names).and_return([])
+          expect(ctcli).to receive(:import_params)
           expect(cli).to receive(:ensure_environments).with(ctcli, [param])
           expect(cli).to_not receive(:ensure_projects)
           cli.apply_params([param])
@@ -276,7 +265,7 @@ module Cloudtruth
         it "ensures projects with --create-environments" do
           cli.parse(%w[--create-projects path])
           expect(CtCLI).to receive(:new).with(dry_run: false).and_return(ctcli)
-          allow(ctcli).to receive(:get_param_names).and_return([])
+          expect(ctcli).to receive(:import_params)
           expect(cli).to receive(:ensure_projects).with(ctcli, [param])
           expect(cli).to_not receive(:ensure_environments)
           cli.apply_params([param])

@@ -74,7 +74,7 @@ module Cloudtruth
              default: false
 
       option ["-o", "--override"],
-             :flag, "Force override of parameters in cloudtruth if they already exist",
+             :flag, "Forces override of parameter values that would normally be inherited from a parent project",
              default: false
 
       option ["-n", "--dry-run"],
@@ -208,13 +208,7 @@ module Cloudtruth
         ensure_projects(cli, params) if create_projects?
         param_groups = params.group_by {|p| {environment: p[:environment], project: p[:project]} }
         param_groups.each do |group, params|
-          unless override?
-            existing = cli.get_param_names(group[:project])
-            logger.debug {"Existing parameters for #{group}: #{existing.inspect}"}
-            params = params.reject {|p| existing.include?(p.key) }
-            logger.info "No new parameters for #{group}" if params.size == 0
-          end
-          cli.set_params(params)
+          cli.import_params(**group, parameters: params, no_inherit: override?)
         end
       end
 

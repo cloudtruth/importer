@@ -1,4 +1,5 @@
 require 'open3'
+require 'tempfile'
 require 'set'
 require 'cloudtruth/importer/parameter'
 
@@ -33,6 +34,29 @@ module Cloudtruth
         else
           execute(*cmd)
         end
+      end
+
+      def import_params(project:, environment:, parameters:, no_inherit: false )
+
+        param_groups = parameters.group_by {|p| p.fqn.present? }
+        plain_params = param_groups[false]
+        external_params = param_groups[true]
+
+        secrets = []
+        data = Hash[plain_params.collect {|p| secrets << p.key if p.secret; [p.key, p.value]}]
+        Tempfile.create('importer') do |file|
+          file.write(data.to_yaml)
+
+          cmd = %W[cloudtruth import parameters --environment #{environment} #{project} #{file.path}]
+          secrets.each {|k| cmd << '--secret' << k }
+          cmd << "--preview" if @dry_run
+          cmd << "--no-inherit" if no_inherit
+
+          execute(*cmd)
+        end
+
+        set_params(external_params) if external_params.present?
+
       end
 
       def get_environments

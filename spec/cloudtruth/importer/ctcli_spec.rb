@@ -165,6 +165,48 @@ module Cloudtruth
 
       end
 
+      describe "import_params" do
+
+        it "sets a list of params" do
+          expect(cli).to_not receive(:set_param)
+          expect(cli).to receive(:execute).with(*%w[cloudtruth import parameters --environment env1 proj1], /importer/)
+          cli.import_params(project: param.project, environment: param.environment, parameters: [param])
+        end
+  
+        it "indicates secrets" do
+          params = [
+            Parameter.new(environment: "env1", project: "proj1", key: "key1", value: "value1", secret: false),
+            Parameter.new(environment: "env1", project: "proj1", key: "key2", value: "value2", secret: true),
+          ]
+          expect(cli).to receive(:execute).with(*%w[cloudtruth import parameters --environment env1 proj1], /importer/, "--secret", "key2")
+          cli.import_params(project: params.first.project, environment: params.first.environment, parameters: params)
+        end
+                
+        it "use set_params for fqn" do
+          params = [
+            Parameter.new(environment: "env1", project: "proj1", key: "key1", value: "value1"),
+            Parameter.new(environment: "env1", project: "proj1", key: "key2", fqn: "value2"),
+          ]
+          expect(cli).to receive(:execute).with(*%w[cloudtruth import parameters --environment env1 proj1], /importer/)
+          expect(cli).to receive(:set_params).with([params.last])
+          cli.import_params(project: params.first.project, environment: params.first.environment, parameters: params)
+        end
+                
+        it "uses --preview for dry run" do
+          cli = described_class.new(dry_run: true)
+          expect(cli).to receive(:execute).with(*%w[cloudtruth import parameters --environment env1 proj1], /importer/, '--preview')
+          cli.import_params(project: param.project, environment: param.environment, parameters: [param])
+        end
+        
+        it "uses --no-inherit when set" do
+          expect(cli).to receive(:execute).with(*%w[cloudtruth import parameters --environment env1 proj1], /importer/, '--no-inherit')
+          cli.import_params(project: param.project, environment: param.environment, parameters: [param], no_inherit: true)
+        end
+        
+      end
+
     end
+
+ 
   end
 end
