@@ -44,9 +44,11 @@ GEM
       rake
     minitest (5.14.4)
     multi_json (1.15.0)
-    nokogiri (1.12.5-arm64-darwin)
+    nokogiri (1.13.3-arm64-darwin)
       racc (~> 1.4)
-    nokogiri (1.12.5-x86_64-darwin)
+    nokogiri (1.13.3-x86_64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.13.3-x86_64-linux)
       racc (~> 1.4)
     ox (2.14.5)
     parallel (1.20.1)
@@ -58,7 +60,7 @@ GEM
     pry-byebug (3.8.0)
       byebug (~> 11.0)
       pry (~> 0.10)
-    racc (1.5.2)
+    racc (1.6.0)
     rainbow (3.0.0)
     rake (13.0.6)
     regexp_parser (2.1.1)
@@ -127,6 +129,7 @@ GEM
 PLATFORMS
   arm64-darwin-21
   x86_64-darwin-20
+  x86_64-linux
 
 DEPENDENCIES
   activesupport
