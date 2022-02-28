@@ -42,17 +42,21 @@ module Cloudtruth
         plain_params = param_groups[false]
         external_params = param_groups[true]
 
-        secrets = []
-        data = Hash[plain_params.collect {|p| secrets << p.key if p.secret; [p.key, p.value]}]
-        Tempfile.create('importer') do |file|
-          file.write(data.to_yaml)
+        if plain_params.present?
+          secrets = []
+          data = Hash[plain_params.collect {|p| secrets << p.key if p.secret; [p.key, p.value]}]
 
-          cmd = %W[cloudtruth import parameters --environment #{environment} #{project} #{file.path}]
-          secrets.each {|k| cmd << '--secret' << k }
-          cmd << "--preview" if @dry_run
-          cmd << "--no-inherit" if no_inherit
+          Tempfile.create(['importer', '.yml']) do |file|
+            file.write(data.to_yaml)
+            file.flush
 
-          execute(*cmd)
+            cmd = %W[cloudtruth import parameters --environment #{environment} #{project} #{file.path}]
+            secrets.each {|k| cmd << '--secret' << k }
+            cmd << "--preview" if @dry_run
+            cmd << "--no-inherit" if no_inherit
+
+            execute(*cmd)
+          end
         end
 
         set_params(external_params) if external_params.present?
