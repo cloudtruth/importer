@@ -1,3 +1,13 @@
+0.3.0 (02/28/2022)
+------------------
+
+* flush temp file contents [ce8f81b](../../commit/ce8f81b)
+* improve performance by using cli import where possible [22cfcc1](../../commit/22cfcc1)
+* bump ruby ver [ebdc838](../../commit/ebdc838)
+* tweak for vscode [dcdc685](../../commit/dcdc685)
+* convenice compose file [93197ff](../../commit/93197ff)
+* update template filters [1192b9c](../../commit/1192b9c)
+
 0.2.0 (12/14/2021)
 ------------------
 
