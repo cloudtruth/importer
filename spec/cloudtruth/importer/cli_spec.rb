@@ -246,6 +246,16 @@ module Cloudtruth
           cli.apply_params([param])
         end
 
+        it "sets individual params if not batch" do
+          cli.parse(%w[--no-batch path])
+          expect(CtCLI).to receive(:new).with(dry_run: false).and_return(ctcli)
+          expect(ctcli).to receive(:import_params).never
+          expect(ctcli).to receive(:set_params).with([param])
+          expect(cli).to_not receive(:ensure_projects)
+          expect(cli).to_not receive(:ensure_environments)
+          cli.apply_params([param])
+        end
+
         it "forces set of no_inherit with --override" do
           cli.parse(%w[--override path])
           expect(CtCLI).to receive(:new).with(dry_run: false).and_return(ctcli)

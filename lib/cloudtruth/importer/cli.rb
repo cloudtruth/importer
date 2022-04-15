@@ -77,6 +77,10 @@ module Cloudtruth
              :flag, "Forces override of parameter values that would normally be inherited from a parent project",
              default: false
 
+      option ["-b", "--[no-]batch"],
+             :flag, "Uses the cli import subcommand to batch up parameter creation",
+             default: true
+
       option ["-n", "--dry-run"],
              :flag, "Perform a dry run",
              default: false
@@ -208,7 +212,11 @@ module Cloudtruth
         ensure_projects(cli, params) if create_projects?
         param_groups = params.group_by {|p| {environment: p[:environment], project: p[:project]} }
         param_groups.each do |group, params|
-          cli.import_params(**group, parameters: params, no_inherit: override?)
+          if batch?
+            cli.import_params(**group, parameters: params, no_inherit: override?)
+          else
+            cli.set_params(params)
+          end
         end
       end
 
