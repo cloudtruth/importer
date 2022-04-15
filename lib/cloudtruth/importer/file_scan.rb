@@ -77,7 +77,7 @@ module Cloudtruth
           end
 
           matches_hash = match.named_captures.symbolize_keys
-          logger.debug { "Processing matching file '#{f}' with match data: #{matches_hash.inspect}" }
+          logger.info { "Processing matching file '#{f}' with match data: #{matches_hash.inspect}" }
 
           data = self.class.parse(filename: f)
           next if data.nil?

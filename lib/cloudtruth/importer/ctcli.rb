@@ -19,6 +19,8 @@ module Cloudtruth
       end
 
       def set_param(param)
+        logger.info "Setting param: #{param}"
+        
         cmd = %W[cloudtruth --env #{param.environment} --project #{param.project} param set]
         cmd << "--secret" << "true" if param.secret
         if ! param.value.nil?
@@ -37,6 +39,7 @@ module Cloudtruth
       end
 
       def import_params(project:, environment:, parameters:, no_inherit: false )
+        logger.info "Importing #{parameters.size} parameters for project='#{project}' environment='#{environment}'"
 
         param_groups = parameters.group_by {|p| p.fqn.present? }
         plain_params = param_groups[false]
@@ -70,6 +73,8 @@ module Cloudtruth
       end
 
       def ensure_environment(environment, parent=nil)
+        logger.info "Ensuring environment '#{environment}'"
+
         cmd = %W[cloudtruth environments set]
         cmd.concat(%W[--parent #{parent}]) if parent.present?
         cmd << environment
@@ -87,6 +92,8 @@ module Cloudtruth
       end
 
       def ensure_project(project, parent=nil)
+        logger.info "Ensuring project '#{project}'"
+
         cmd = %W[cloudtruth projects set]
         cmd.concat(%W[--parent #{parent}]) if parent.present?
         cmd << project
