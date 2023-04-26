@@ -5,6 +5,7 @@ services:
   # docker compose run importer --dry-run --stdin yaml
   importer:
     image: cloudtruth/importer
+    platform: linux/amd64
     environment:
       CLOUDTRUTH_API_KEY: ${CLOUDTRUTH_API_KEY}
     volumes:
@@ -16,6 +17,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    platform: linux/amd64
     environment:
       CLOUDTRUTH_API_KEY: ${CLOUDTRUTH_API_KEY}
     volumes:

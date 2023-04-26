@@ -37,7 +37,7 @@ end
 
 task :build_development do
   image_name = get_var(:image_name, default: "#{APP[:name]}", prompt: false, required: false)
-  sh "docker build --target development -t #{image_name}:latest -t #{image_name}:development ."
+  sh "docker build --platform linux/amd64 --target development -t #{image_name}:latest -t #{image_name}:development ."
 end
 
 task :test => [:build_development] do
@@ -56,7 +56,7 @@ end
 
 task :build_release do
   image_name = get_var(:image_name, default: "#{APP[:name]}", prompt: false, required: false)
-  sh "docker build --target release -t #{image_name}:latest -t #{image_name}:release ."
+  sh "docker build --platform linux/amd64 --target release -t #{image_name}:latest -t #{image_name}:release ."
 end
 
 task :docker_push do
